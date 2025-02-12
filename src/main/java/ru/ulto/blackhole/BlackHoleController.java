@@ -16,7 +16,6 @@ import net.minecraft.server.world.ServerEntityManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
 import ru.ulto.blackhole.accessors.BlackHoleBlockAccessor;
 import ru.ulto.blackhole.accessors.EntityManagerAccessor;
 import ru.ulto.blackhole.packets.AddVelocityPayload;
