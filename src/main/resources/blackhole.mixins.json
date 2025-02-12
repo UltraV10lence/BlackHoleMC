@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "ru.ulto.blackhole.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BlackHoleBlockState",
+    "DisableEndPortals",
+    "DisableNetherPortals",
+    "PlayerRespawnSpectator",
+    "WorldWithBlackHole"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+	}
+}
