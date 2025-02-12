@@ -21,8 +21,10 @@ import ru.ulto.blackhole.accessors.BlackHoleBlockAccessor;
 import ru.ulto.blackhole.accessors.EntityManagerAccessor;
 import ru.ulto.blackhole.packets.AddVelocityPayload;
 
+import java.util.Random;
+
 public class BlackHoleController {
-    public static final double G = .3;
+    public static final double G = .26;
     public final ServerWorld world;
     public Vec3d position;
     public int blocksAte = 0;
@@ -39,9 +41,6 @@ public class BlackHoleController {
     public void start() {
         isStarted = true;
     }
-    public boolean isStarted() {
-        return isStarted;
-    }
 
     public void tick() {
         if (!isStarted) return;
@@ -53,7 +52,7 @@ public class BlackHoleController {
         final var radius = normalizedRadius * radiusMultiplier + 2;
 
         for (var player : world.getServer().getPlayerManager().getPlayerList()) {
-            if (player.interactionManager.getGameMode() == GameMode.SPECTATOR) continue;
+            if (!player.interactionManager.getGameMode().isSurvivalLike()) continue;
 
             var forceVector = player.getPos().subtract(position);
             offset = offset.add(forceVector);
@@ -76,7 +75,7 @@ public class BlackHoleController {
             var force = G * radius / (distance * distance);
             var forceVector = position.subtract(e.getPos()).multiply(force);
 
-            if (force < 0.0001) continue;
+            if (force < 0.00001) continue;
 
             e.addVelocity(forceVector);
             if (e instanceof ServerPlayerEntity player) {
@@ -84,7 +83,11 @@ public class BlackHoleController {
                 ServerPlayNetworking.send(player, new AddVelocityPayload(forceVector));
             }
 
-            if (e instanceof LivingEntity living && distance <= radius) {
+            if (distance <= radius) {
+                if (!(e instanceof LivingEntity living)) {
+                    e.remove(Entity.RemovalReason.KILLED);
+                    continue;
+                }
                 addBlackHoleEffect(living, StatusEffects.BLINDNESS);
                 addBlackHoleEffect(living, StatusEffects.DARKNESS);
                 addBlackHoleEffect(living, StatusEffects.NAUSEA);
@@ -99,11 +102,9 @@ public class BlackHoleController {
         for (var x = -roundedRadius; x <= roundedRadius; x++) {
             for (var y = -roundedRadius; y <= roundedRadius; y++) {
                 for (var z = -roundedRadius; z <= roundedRadius; z++) {
+                    world.setBlockState(BlockPos.ofFloored(position.getX() + x, position.getY() + y, position.getZ() + z), Blocks.AIR.getDefaultState());
+
                     var dst = Math.sqrt(x*x + y*y + z*z);
-
-                    if (dst <= roundedRadius)
-                        world.setBlockState(BlockPos.ofFloored(position.getX() + x, position.getY() + y, position.getZ() + z), Blocks.AIR.getDefaultState());
-
                     if (dst <= roundedRadius - 2) {
                         var state = asBlackHoleState(Blocks.BLACK_CONCRETE.getDefaultState());
                         world.setBlockState(BlockPos.ofFloored(position.getX() + x, position.getY() + y, position.getZ() + z), state);
@@ -112,7 +113,9 @@ public class BlackHoleController {
             }
         }
 
-        var eatRadius = radius * 2 + 5;
+        final var random = new Random();
+
+        var eatRadius = radius * 2 + 2;
 
         for (var x = -eatRadius; x <= eatRadius; x++) {
             for (var y = -eatRadius; y <= eatRadius; y++) {
@@ -127,7 +130,7 @@ public class BlackHoleController {
 
                     if (state.isOf(Blocks.AIR) || state.isOf(Blocks.BEDROCK)) continue;
 
-                    addFlyingBlock(); //todo
+                    addFlyingBlock(random);
                     world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
                     blocksAte++;
                 }
@@ -137,8 +140,8 @@ public class BlackHoleController {
         world.setBlockState(new BlockPos((int) position.x, (int) position.y, (int) position.z), asBlackHoleState(Blocks.BLACK_CONCRETE.getDefaultState()));
     }
 
-    public void addFlyingBlock() {
-
+    public void addFlyingBlock(Random random) {
+        //todo
     }
 
     public ServerEntityManager<Entity> getEntityManager(ServerWorld world) {
