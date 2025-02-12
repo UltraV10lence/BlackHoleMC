@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.ulto.blackhole.BlackHoleController;
 import ru.ulto.blackhole.BlackHoleSaveData;
 import ru.ulto.blackhole.BlackHoleWorld;
-import ru.ulto.blackhole.accessors.EntityManagerAccessor;
 import ru.ulto.blackhole.accessors.SaveDataAccessor;
 
 import java.util.List;
@@ -32,7 +31,7 @@ import java.util.concurrent.Executor;
 import java.util.function.BooleanSupplier;
 
 @Mixin(ServerWorld.class)
-public abstract class WorldWithBlackHole implements SaveDataAccessor, BlackHoleWorld, EntityManagerAccessor {
+public abstract class WorldWithBlackHole implements SaveDataAccessor, BlackHoleWorld {
     @Shadow public abstract PersistentStateManager getPersistentStateManager();
 
     @Shadow @Final private ServerEntityManager<Entity> entityManager;
@@ -75,11 +74,6 @@ public abstract class WorldWithBlackHole implements SaveDataAccessor, BlackHoleW
     @Override
     public void stopBlackHole() {
         blackHole = null;
-    }
-
-    @Override
-    public ServerEntityManager<Entity> getEntityManager() {
-        return entityManager;
     }
 
     @Override

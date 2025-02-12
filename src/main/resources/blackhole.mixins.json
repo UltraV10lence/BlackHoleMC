@@ -6,10 +6,11 @@
     "BlackHoleBlockState",
     "DisableEndPortals",
     "DisableNetherPortals",
+    "FallingBlockLifeTimeMixin",
     "PlayerRespawnSpectator",
     "WorldWithBlackHole"
   ],
   "injectors": {
     "defaultRequire": 1
-	}
+  }
 }

@@ -1,16 +1,18 @@
 package ru.ulto.blackhole;
 
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
-import net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -44,12 +46,17 @@ public class BlackHole implements ModInitializer {
 			if (client.player == null) return;
 
 			for (var vel : velocitiesToAdd) {
-				client.player.addVelocity(vel);
-				if (client.player.hasVehicle())
-					client.player.getVehicle().addVelocity(vel);
+				applyVelocity(client.player, vel);
+				if (client.player.hasVehicle()) applyVelocity(client.player.getVehicle(), vel);
 			}
 			velocitiesToAdd.clear();
 		});
+	}
+
+	public static void applyVelocity(Entity e, Vec3d force) {
+		force = force.multiply(1, 1.25, 1);
+		e.addVelocity(force);
+		e.setVelocity(e.getVelocity().multiply(BlackHoleController.AIR_FRICTION_MULT));
 	}
 
 	public static void repickPlace(MinecraftServer server) {
@@ -126,8 +133,10 @@ public class BlackHole implements ModInitializer {
 	public static void startGame(MinecraftServer server) {
 		final var parameters = BlackHoleSaveData.of(server);
 
+		final var gameStartedText = Text.literal("Игра началась").formatted(Formatting.BOLD, Formatting.GREEN);
 		for (var player : server.getPlayerManager().getPlayerList()) {
 			BedrockCage.from(player).remove();
+			player.networkHandler.sendPacket(new TitleS2CPacket(gameStartedText));
 		}
 
 		var world = server.getOverworld();
