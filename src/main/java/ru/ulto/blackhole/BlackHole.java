@@ -54,6 +54,8 @@ public class BlackHole implements ModInitializer {
 	}
 
 	public static void applyVelocity(Entity e, Vec3d force) {
+		if (e instanceof ServerPlayerEntity) return;
+
 		force = force.multiply(1, 1.25, 1);
 		e.addVelocity(force);
 		e.setVelocity(e.getVelocity().multiply(BlackHoleController.AIR_FRICTION_MULT));
@@ -80,7 +82,7 @@ public class BlackHole implements ModInitializer {
 		for (var i = 0; i < playersCount; i++) {
 			var player = playerManager.getPlayerList().get(i);
 
-			var degrees = Math.toRadians(i * deltaDegrees);
+			var degrees = i * deltaDegrees;
 
 			var playerX = (int) (Math.cos(degrees) * (radius - 5) + randomCenter.getX());
 			var playerZ = (int) (Math.sin(degrees) * (radius - 5) + randomCenter.getZ());
